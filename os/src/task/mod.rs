@@ -54,6 +54,7 @@ lazy_static! {
         let mut tasks = [TaskControlBlock {
             task_cx: TaskContext::zero_init(),
             task_status: TaskStatus::UnInit,
+            syscall_count:[0;512],
         }; MAX_APP_NUM];
         for (i, task) in tasks.iter_mut().enumerate() {
             task.task_cx = TaskContext::goto_restore(init_app_cx(i));
@@ -89,7 +90,16 @@ impl TaskManager {
         }
         panic!("unreachable in run_first_task!");
     }
-
+    fn add_syscall_count(&self,syscall_id:usize){
+        let mut inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        inner.tasks[current].syscall_count[syscall_id]+=1;
+    }
+    fn get_syscall_count(&self,syscall_id:usize)->isize{
+        let inner = self.inner.exclusive_access();
+        let current = inner.current_task;
+        inner.tasks[current].syscall_count[syscall_id] as isize
+    }
     /// Change the status of current `Running` task into `Ready`.
     fn mark_current_suspended(&self) {
         let mut inner = self.inner.exclusive_access();
@@ -157,7 +167,14 @@ fn mark_current_suspended() {
 fn mark_current_exited() {
     TASK_MANAGER.mark_current_exited();
 }
-
+/// Add the syscall count of the current task for the syscall `syscall_id`.
+pub fn add_syscall_count(syscall_id: usize){
+    TASK_MANAGER.add_syscall_count(syscall_id);
+}
+/// Get how many times the current task has called the syscall `syscall_id`.
+pub fn get_syscall_count(syscall_id: usize) -> isize {
+    TASK_MANAGER.get_syscall_count(syscall_id)
+}
 /// Suspend the current 'Running' task and run the next task in task list.
 pub fn suspend_current_and_run_next() {
     mark_current_suspended();
@@ -169,3 +186,4 @@ pub fn exit_current_and_run_next() {
     mark_current_exited();
     run_next_task();
 }
+
