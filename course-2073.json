@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "courseId": 2073,
+  "repository": "LearningOS/2026a-rcore-HDU-OrangeS",
+  "user": "HDU-OrangeS",
+  "totalScore": 500,
+  "chapters": {
+    "ch3": {
+      "points": "7/7",
+      "score": 100,
+      "commit": "59e603e6d09a1c582d9d0a067b83ede4bd33accc"
+    }
+  },
+  "score": 100,
+  "upload": {
+    "status": "pending",
+    "runId": "43335696146",
+    "runAttempt": "1"
+  }
+}
