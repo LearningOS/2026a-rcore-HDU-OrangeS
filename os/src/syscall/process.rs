@@ -1,6 +1,6 @@
 //! Process management syscalls
 use crate::task::{change_program_brk, exit_current_and_run_next, suspend_current_and_run_next};
-
+// use crate::
 #[repr(C)]
 #[derive(Debug)]
 pub struct TimeVal {
@@ -27,7 +27,7 @@ pub fn sys_yield() -> isize {
 /// HINT: What if [`TimeVal`] is splitted by two pages ?
 pub fn sys_get_time(_ts: *mut TimeVal, _tz: usize) -> isize {
     trace!("kernel: sys_get_time");
-    -1
+    
 }
 
 /// TODO: Finish sys_trace to pass testcases
