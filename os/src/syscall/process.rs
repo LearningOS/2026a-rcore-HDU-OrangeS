@@ -27,7 +27,7 @@ pub fn sys_yield() -> isize {
 /// HINT: What if [`TimeVal`] is splitted by two pages ?
 pub fn sys_get_time(_ts: *mut TimeVal, _tz: usize) -> isize {
     trace!("kernel: sys_get_time");
-    
+    let buffers=translated_byte_buffer(current_user_token(),_ts,_tz_);
 }
 
 /// TODO: Finish sys_trace to pass testcases
