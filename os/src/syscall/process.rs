@@ -1,6 +1,10 @@
 //! Process management syscalls
 use crate::task::{change_program_brk, exit_current_and_run_next, suspend_current_and_run_next};
-// use crate::
+use crate::mm::{translated_byte_buffer,PageTable,RTEFlags,VirtAddr};
+use crate::task::current_user_token;
+use crate::timer::get_time_us;
+use core::mem::size_of;
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct TimeVal {
@@ -25,16 +29,35 @@ pub fn sys_yield() -> isize {
 /// YOUR JOB: get time with second and microsecond
 /// HINT: You might reimplement it with virtual memory management.
 /// HINT: What if [`TimeVal`] is splitted by two pages ?
-pub fn sys_get_time(_ts: *mut TimeVal, _tz: usize) -> isize {
+pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize {
     trace!("kernel: sys_get_time");
-    let buffers=translated_byte_buffer(current_user_token(),_ts,_tz_);
+    let us=get_time_us();
+    let sec=us/1000000;
+    let usec=us%1000000;
+
+    let mut source=sec.to_ne_bytes().into_iter().chain(usec.to_ne_bytes());
+    let buffers=translated_byte_buffer(current_user_token(),ts.cast::<u8>(),size_of::<TimeVal>());
+    for dst in buffers{
+        for byte in dst{
+            *byte=source.next().unwrap();
+        }
+    }
+    0
 }
 
 /// TODO: Finish sys_trace to pass testcases
 /// HINT: You might reimplement it with virtual memory management.
 pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
     trace!("kernel: sys_trace");
-    -1
+    let buffers=
+    match trace_request{
+        0=>{
+            let buffers=
+        }
+        1=>{}
+        2=>{}
+        _=>-1,
+    }
 }
 
 // YOUR JOB: Implement mmap.
