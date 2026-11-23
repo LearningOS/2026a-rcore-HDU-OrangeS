@@ -58,7 +58,10 @@ pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
             let pagetable=PageTable::from_token(token);
             //let buffers=translated_byte_buffer(token,_id as *const u8,1);
             let va=VirtAddr::from(_id);
-            let pte=pagetable.translate(va.floor()).unwrap();
+            let pte = match pagetable.translate(va.floor()) {
+    Some(pte) => pte,
+    None => return -1,
+};
             //let flags=pte.flags();
             if !pte.is_valid() || !pte.visitable() {
                 return -1;
