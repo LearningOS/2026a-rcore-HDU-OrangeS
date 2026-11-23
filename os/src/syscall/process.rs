@@ -51,7 +51,9 @@ pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
     trace!("kernel: sys_trace");
     match _trace_request{
         0 | 1=>{
-             
+             let va=VirtAddr::from(_id);
+             let pte=translate(va).unwrap();
+             if 
         }
         2=>get_syscall_count(_id),
         _=>-1,
