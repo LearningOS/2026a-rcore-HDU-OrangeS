@@ -28,6 +28,9 @@ pub struct TaskControlBlock {
 
     /// Program break
     pub program_brk: usize,
+
+    ///syscall count
+    pub syscall_count:[isize;512],    
 }
 
 impl TaskControlBlock {
@@ -63,6 +66,7 @@ impl TaskControlBlock {
             base_size: user_sp,
             heap_bottom: user_sp,
             program_brk: user_sp,
+            syscall_count:[0isize;512],
         };
         // prepare TrapContext in user space
         let trap_cx = task_control_block.get_trap_cx();
@@ -96,8 +100,25 @@ impl TaskControlBlock {
             None
         }
     }
+    ///add_one_insyscall_count
+    pub fn add_syscall_count(&mut self,syscall_id:usize){
+        self.syscall_count[syscall_id]+=1;
+    }
+    ///get the count of syscall
+    pub fn get_syscall_count(&self,syscall_id:usize)->isize{
+        self.syscall_count[syscall_id]
+    }
 }
-
+pub fn add_syscall_count(syscall_id:usize){
+    let mut inner=super::TASK_MANAGER.inner.exclusive_access();
+    let current=inner.current_task;
+    inner.tasks[current].add_syscall_count(syscall_id);    
+}
+pub fn get_syscall_count(syscall_id:usize)->isize{
+    let inner=super::TASK_MANAGER.inner.exclusive_access();
+    let current=inner.current_task;
+    inner.tasks[current].get_syscall_count(syscall_id)    
+}
 #[derive(Copy, Clone, PartialEq)]
 /// task status: UnInit, Ready, Running, Exited
 pub enum TaskStatus {

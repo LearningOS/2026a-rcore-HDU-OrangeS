@@ -4,7 +4,7 @@ use crate::mm::{translated_byte_buffer,PageTable,RTEFlags,VirtAddr};
 use crate::task::current_user_token;
 use crate::timer::get_time_us;
 use core::mem::size_of;
-
+use crate::task::get_syscall_count;
 #[repr(C)]
 #[derive(Debug)]
 pub struct TimeVal {
@@ -49,13 +49,11 @@ pub fn sys_get_time(ts: *mut TimeVal, _tz: usize) -> isize {
 /// HINT: You might reimplement it with virtual memory management.
 pub fn sys_trace(_trace_request: usize, _id: usize, _data: usize) -> isize {
     trace!("kernel: sys_trace");
-    let buffers=
-    match trace_request{
-        0=>{
-            let buffers=
+    match _trace_request{
+        0 | 1=>{
+             
         }
-        1=>{}
-        2=>{}
+        2=>get_syscall_count(_id),
         _=>-1,
     }
 }

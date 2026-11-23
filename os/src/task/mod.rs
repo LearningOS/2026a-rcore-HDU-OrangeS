@@ -22,7 +22,7 @@ use lazy_static::*;
 use switch::__switch;
 pub use task::{TaskControlBlock, TaskStatus};
 
-pub use context::TaskContext;
+pub use {context::TaskContext,task::get_syscall_count,task::add_syscall_count};
 
 /// The task manager, where all the tasks are managed.
 ///
@@ -153,6 +153,19 @@ impl TaskManager {
             panic!("All applications completed!");
         }
     }
+
+    // ///add one in syscall
+    // fn add_syscall_count(&self,syscall_id:usize){
+    //     let mut inner=self.inner.exclusive_access();
+    //     let current=inner.current_task;
+    //     inner.tasks[current].add_syscall_count(syscall_id);
+    // }
+    // ///get the num of syscall
+    // fn get_syscall_count(&self,syscall_id:usize)->isize{
+    //     let inner=self.inner.exclusive_access();
+    //     let current=inner.current_task;
+    //     inner.tasks[current].get_syscall_count(syscall_id)
+    // }
 }
 
 /// Run the first task in task list.
