@@ -70,6 +70,10 @@ impl PageTableEntry {
     pub fn executable(&self) -> bool {
         (self.flags() & PTEFlags::X) != PTEFlags::empty()
     }
+    ///the page pointed by page table is visitable
+    pub fn visitable(&self)->bool{
+        (self.flags() & PTEFlags::U) !=PTEFlags::empty()
+    }
 }
 
 /// page table structure

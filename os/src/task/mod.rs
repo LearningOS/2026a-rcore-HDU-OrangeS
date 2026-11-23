@@ -20,6 +20,8 @@ use crate::trap::TrapContext;
 use alloc::vec::Vec;
 use lazy_static::*;
 use switch::__switch;
+use crate::mm::MapPermission;
+use crate::mm::{VirtAddr, VirtPageNum};
 pub use task::{TaskControlBlock, TaskStatus};
 
 pub use {context::TaskContext,task::get_syscall_count,task::add_syscall_count};
@@ -214,4 +216,33 @@ pub fn current_trap_cx() -> &'static mut TrapContext {
 /// Change the current 'Running' task's program break
 pub fn change_program_brk(size: i32) -> Option<usize> {
     TASK_MANAGER.change_current_program_brk(size)
+}
+///set a mmap, ok is 0 ,otherwise is 1
+pub fn current_mmap(start_va:VirtAddr,end_va:VirtAddr,mappermission:MapPermission)->isize{
+    let start=start_va.floor();
+    let end=end_va.ceil();
+    let mut inner=TASK_MANAGER.inner.exclusive_access();
+    let current=inner.current_task;
+    let memoryset=&mut inner.tasks[current].memory_set;
+    for page_num in start.0..end.0{
+        let vpn=VirtPageNum::from(page_num);
+        if let Some(pte)=memoryset.translate(vpn){
+            if pte.is_valid(){
+                return -1;
+            }
+        }
+    }
+    memoryset.insert_framed_area(start_va,end_va,mappermission);
+    0
+}
+///set a munmap
+pub fn current_munmap(start_va:VirtAddr,end_va:VirtAddr)->isize{
+    let mut inner=TASK_MANAGER.inner.exclusive_access();
+    let current=inner.current_task;
+    let memoryset=&mut inner.tasks[current].memory_set;
+    if memoryset.unmap_range(start_va,end_va){
+         0
+    }else{
+        -1
+    }
 }

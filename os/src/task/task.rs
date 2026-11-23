@@ -109,11 +109,13 @@ impl TaskControlBlock {
         self.syscall_count[syscall_id]
     }
 }
+///add the count
 pub fn add_syscall_count(syscall_id:usize){
     let mut inner=super::TASK_MANAGER.inner.exclusive_access();
     let current=inner.current_task;
     inner.tasks[current].add_syscall_count(syscall_id);    
 }
+///get thecount
 pub fn get_syscall_count(syscall_id:usize)->isize{
     let inner=super::TASK_MANAGER.inner.exclusive_access();
     let current=inner.current_task;

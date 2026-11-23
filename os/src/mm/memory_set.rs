@@ -40,6 +40,67 @@ pub struct MemorySet {
 }
 
 impl MemorySet {
+    ///remove range 
+    /// 取消指定范围的用户页映射。
+pub fn unmap_range(&mut self, start: VirtAddr, end: VirtAddr) -> bool {
+    let start = start.floor();
+    let end = end.ceil();
+
+    // 先检查：每一页都已经映射，并属于用户逻辑段。
+    for vpn in VPNRange::new(start, end) {
+        match self.page_table.translate(vpn) {
+            Some(pte) if pte.is_valid() => {}
+            _ => return false,
+        }
+
+        if !self.areas.iter().any(|area| {
+            area.map_perm.contains(MapPermission::U)
+                && area.data_frames.contains_key(&vpn)
+        }) {
+            return false;
+        }
+    }
+
+    // 取出原来的逻辑段，把保留部分重新放回。
+    let areas = core::mem::take(&mut self.areas);
+
+    for mut area in areas {
+        let a = area.vpn_range.get_start();
+        let b = area.vpn_range.get_end();
+        let left = a.max(start);
+        let right = b.min(end);
+
+        // 没有重叠，原样放回。
+        if left >= right {
+            self.areas.push(area);
+            continue;
+        }
+
+        // 释放重叠部分。
+        for vpn in VPNRange::new(left, right) {
+            area.unmap_one(&mut self.page_table, vpn);
+        }
+
+        // 保留右边。
+        if right < b {
+            let right_area = MapArea {
+                vpn_range: VPNRange::new(right, b),
+                data_frames: area.data_frames.split_off(&right),
+                map_type: area.map_type,
+                map_perm: area.map_perm,
+            };
+            self.areas.push(right_area);
+        }
+
+        // 保留左边。
+        if a < left {
+            area.vpn_range = VPNRange::new(a, left);
+            self.areas.push(area);
+        }
+    }
+
+    true
+}
     /// Create a new empty `MemorySet`.
     pub fn new_bare() -> Self {
         Self {
